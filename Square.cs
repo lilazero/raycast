@@ -22,12 +22,56 @@ public class Square
         float top = Position.Y - Size / 2;
         float bottom = Position.Y + Size / 2;
 
-        // Check each edge of the square for intersection
-        if (LineIntersectsLine(start, end, new Vector2(left, top), new Vector2(right, top), out intersection) ||
-            LineIntersectsLine(start, end, new Vector2(right, top), new Vector2(right, bottom), out intersection) ||
-            LineIntersectsLine(start, end, new Vector2(right, bottom), new Vector2(left, bottom), out intersection) ||
-            LineIntersectsLine(start, end, new Vector2(left, bottom), new Vector2(left, top), out intersection))
+        Vector2 closestIntersection = Vector2.Zero;
+        bool hasIntersection = false;
+        float closestDistance = float.MaxValue;
+
+        // Check each edge and find the closest intersection point
+        Vector2 tempIntersection;
+        if (LineIntersectsLine(start, end, new Vector2(left, top), new Vector2(right, top), out tempIntersection))
         {
+            float dist = Vector2.DistanceSquared(start, tempIntersection);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closestIntersection = tempIntersection;
+                hasIntersection = true;
+            }
+        }
+        if (LineIntersectsLine(start, end, new Vector2(right, top), new Vector2(right, bottom), out tempIntersection))
+        {
+            float dist = Vector2.DistanceSquared(start, tempIntersection);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closestIntersection = tempIntersection;
+                hasIntersection = true;
+            }
+        }
+        if (LineIntersectsLine(start, end, new Vector2(right, bottom), new Vector2(left, bottom), out tempIntersection))
+        {
+            float dist = Vector2.DistanceSquared(start, tempIntersection);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closestIntersection = tempIntersection;
+                hasIntersection = true;
+            }
+        }
+        if (LineIntersectsLine(start, end, new Vector2(left, bottom), new Vector2(left, top), out tempIntersection))
+        {
+            float dist = Vector2.DistanceSquared(start, tempIntersection);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closestIntersection = tempIntersection;
+                hasIntersection = true;
+            }
+        }
+
+        if (hasIntersection)
+        {
+            intersection = closestIntersection;
             return true;
         }
         return false;
@@ -37,24 +81,24 @@ public class Square
     {
         intersection = Vector2.Zero;
 
-        Vector2 b = a2 - a1;
-        Vector2 d = b2 - b1;
-        float bDotDPerp = b.X * d.Y - b.Y * d.X;
-
-        if (bDotDPerp == 0)
+        float denominator = (b2.Y - b1.Y) * (a2.X - a1.X) - (b2.X - b1.X) * (a2.Y - a1.Y);
+        
+        if (denominator == 0)
             return false;
 
-        Vector2 c = b1 - a1;
-        float t = (c.X * d.Y - c.Y * d.X) / bDotDPerp;
-        if (t < 0 || t > 1)
-            return false;
+        float ua = ((b2.X - b1.X) * (a1.Y - b1.Y) - (b2.Y - b1.Y) * (a1.X - b1.X)) / denominator;
+        float ub = ((a2.X - a1.X) * (a1.Y - b1.Y) - (a2.Y - a1.Y) * (a1.X - b1.X)) / denominator;
 
-        float u = (c.X * b.Y - c.Y * b.X) / bDotDPerp;
-        if (u < 0 || u > 1)
-            return false;
+        if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1)
+        {
+            intersection = new Vector2(
+                a1.X + ua * (a2.X - a1.X),
+                a1.Y + ua * (a2.Y - a1.Y)
+            );
+            return true;
+        }
 
-        intersection = a1 + t * b;
-        return true;
+        return false;
     }
 
     public void Draw(GraphicsDevice graphicsDevice, BasicEffect basicEffect)
