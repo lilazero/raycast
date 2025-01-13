@@ -19,6 +19,9 @@ public class Game1 : Game
     private bool _isDragging;
     private Vector2 _dragOffset;
 
+    // Add new field
+    private Square _blocker;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -64,6 +67,12 @@ public class Game1 : Game
                 2f
             )
         };
+
+        // Add blocker initialization
+        _blocker = new Square(
+            new Vector2(_graphics.PreferredBackBufferWidth / 2 + 200, _graphics.PreferredBackBufferHeight / 2),
+            100f
+        );
 
         base.Initialize();
     }
@@ -115,6 +124,12 @@ public class Game1 : Game
             }
         }
 
+        // Add square dragging logic
+        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        {
+            _blocker.Position = mousePosition;
+        }
+
         base.Update(gameTime);
     }
 
@@ -132,12 +147,13 @@ public class Game1 : Game
         GraphicsDevice.BlendState = BlendState.AlphaBlend;
         GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-        // Draw rays and circle
-        _emitter.Draw(GraphicsDevice, _basicEffect);
+        // Draw rays, circle, and blocker
         foreach (var ray in _rays)
         {
-            ray.Draw(GraphicsDevice, _basicEffect);
+            ray.Draw(GraphicsDevice, _basicEffect, _blocker);
         }
+        _emitter.Draw(GraphicsDevice, _basicEffect);
+        _blocker.Draw(GraphicsDevice, _basicEffect);
 
         base.Draw(gameTime);
     }
