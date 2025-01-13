@@ -36,6 +36,7 @@ obj/
 [Dd]ebug*/
 [Rr]elease*/
 Ankh.NoLoad
+[Bb]in/[Dd]ebug/
 
 #Tooling
 _ReSharper*/
