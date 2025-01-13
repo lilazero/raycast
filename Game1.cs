@@ -13,10 +13,16 @@ public class Game1 : Game
     private Ray[] _rays;
     private BasicEffect _basicEffect;
 
+    // Add these fields at the top with other private fields
+    private MouseState _currentMouseState;
+    private MouseState _previousMouseState;
+    private bool _isDragging;
+    private Vector2 _dragOffset;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
-        _graphics.PreferredBackBufferWidth = 800;  // Set window size
+        _graphics.PreferredBackBufferWidth = 800; // Set window size
         _graphics.PreferredBackBufferHeight = 600;
         _graphics.ApplyChanges(); // Add this line
         Content.RootDirectory = "Content";
@@ -77,9 +83,44 @@ public class Game1 : Game
         )
             Exit();
 
-        // TODO: Add your update logic here
+        _previousMouseState = _currentMouseState;
+        _currentMouseState = Mouse.GetState();
+
+        Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
+
+        // Handle dragging
+        if (_currentMouseState.LeftButton == ButtonState.Pressed)
+        {
+            if (!_isDragging && IsMouseOverCircle(mousePosition))
+            {
+                _isDragging = true;
+                _dragOffset = _emitter.Position - mousePosition;
+            }
+        }
+        else
+        {
+            _isDragging = false;
+        }
+
+        // Update circle position while dragging
+        if (_isDragging)
+        {
+            _emitter.Position = mousePosition + _dragOffset;
+            // Update ray positions
+            for (int i = 0; i < _rays.Length; i++)
+            {
+                float angle = MathHelper.ToRadians(i);
+                Vector2 direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+                _rays[i] = new Ray(_emitter.Position, direction);
+            }
+        }
 
         base.Update(gameTime);
+    }
+
+    private bool IsMouseOverCircle(Vector2 mousePosition)
+    {
+        return Vector2.Distance(mousePosition, _emitter.Position) <= _emitter.Radius;
     }
 
     protected override void Draw(GameTime gameTime)
