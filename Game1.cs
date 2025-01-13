@@ -16,7 +16,6 @@ public class Game1 : Game
     // Add these fields at the top with other private fields
     private MouseState _currentMouseState;
     private MouseState _previousMouseState;
-    private bool _isDragging;
     private Vector2 _dragOffset;
 
     // Add new field
@@ -93,10 +92,7 @@ public class Game1 : Game
             100f
         );
 
-        _player = new Triangle(
-            new Vector2(_blocker.Position.X, _blocker.Position.Y),
-            20f
-        );
+        _player = new Triangle(new Vector2(_blocker.Position.X, _blocker.Position.Y), 20f);
         _gameOver = false;
 
         base.Initialize();
@@ -205,7 +201,10 @@ public class Game1 : Game
     {
         Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
 
-        if (_currentMouseState.LeftButton == ButtonState.Pressed && _previousMouseState.LeftButton == ButtonState.Released)
+        if (
+            _currentMouseState.LeftButton == ButtonState.Pressed
+            && _previousMouseState.LeftButton == ButtonState.Released
+        )
         {
             if (IsMouseOverTriangle(mousePosition))
             {
@@ -270,7 +269,10 @@ public class Game1 : Game
     {
         _gameOver = false;
         _emitter.Position = new Vector2(0, _graphics.PreferredBackBufferHeight / 2);
-        _blocker.Position = new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2);
+        _blocker.Position = new Vector2(
+            _graphics.PreferredBackBufferWidth / 2,
+            _graphics.PreferredBackBufferHeight / 2
+        );
         _player.Position = _blocker.Position;
     }
 
@@ -298,10 +300,15 @@ public class Game1 : Game
             _spriteBatch.Begin();
             string text = "Game Over! Press R to restart";
             Vector2 textSize = _gameFont.MeasureString(text);
-            _spriteBatch.DrawString(_gameFont, text,
-                new Vector2(_graphics.PreferredBackBufferWidth / 2 - textSize.X / 2,
-                           _graphics.PreferredBackBufferHeight / 2 - textSize.Y / 2),
-                Color.White);
+            _spriteBatch.DrawString(
+                _gameFont,
+                text,
+                new Vector2(
+                    _graphics.PreferredBackBufferWidth / 2 - textSize.X / 2,
+                    _graphics.PreferredBackBufferHeight / 2 - textSize.Y / 2
+                ),
+                Color.White
+            );
             _spriteBatch.End();
         }
 
