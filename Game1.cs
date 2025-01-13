@@ -27,10 +27,16 @@ public class Game1 : Game
     {
         None,
         Circle,
-        Square
+        Square,
+        Triangle
     }
 
     private DragTarget _currentDragTarget = DragTarget.None;
+
+    private Triangle _player;
+    private bool _gameOver;
+    private SpriteFont _gameFont;
+    private const float EMITTER_SPEED = 100f; // pixels per second
 
     public Game1()
     {
@@ -87,14 +93,27 @@ public class Game1 : Game
             100f
         );
 
+        _player = new Triangle(
+            new Vector2(_blocker.Position.X, _blocker.Position.Y),
+            20f
+        );
+        _gameOver = false;
+
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        // TODO: use this.Content to load your game content here
+        try
+        {
+            _gameFont = Content.Load<SpriteFont>("GameFont");
+        }
+        catch (Exception e)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading font: {e.Message}");
+            Exit();
+        }
     }
 
     protected override void Update(GameTime gameTime)
@@ -105,10 +124,42 @@ public class Game1 : Game
         )
             Exit();
 
+        if (_gameOver)
+        {
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
+                ResetGame();
+            return;
+        }
+
         _previousMouseState = _currentMouseState;
         _currentMouseState = Mouse.GetState();
 
         Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
+
+        // Move emitter automatically
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _emitter.Position += new Vector2(EMITTER_SPEED * deltaTime, 0);
+        if (_emitter.Position.X > _graphics.PreferredBackBufferWidth)
+            _emitter.Position = new Vector2(0, _emitter.Position.Y);
+
+        UpdateRayPositions();
+
+        // Check if any ray hits the triangle
+        foreach (var ray in _rays)
+        {
+            Vector2 rayEnd = ray.Position + ray.Direction * 2000;
+            if (_blocker.Intersects(ray.Position, rayEnd, out Vector2 intersection))
+                rayEnd = intersection;
+
+            if (_player.IsHitByRay(ray.Position, rayEnd))
+            {
+                _gameOver = true;
+                break;
+            }
+        }
+
+        // Handle dragging
+        HandleDragging();
 
         // Handle dragging start
         if (
@@ -150,6 +201,42 @@ public class Game1 : Game
         base.Update(gameTime);
     }
 
+    private void HandleDragging()
+    {
+        Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
+
+        if (_currentMouseState.LeftButton == ButtonState.Pressed && _previousMouseState.LeftButton == ButtonState.Released)
+        {
+            if (IsMouseOverTriangle(mousePosition))
+            {
+                _currentDragTarget = DragTarget.Triangle;
+                _dragOffset = _player.Position - mousePosition;
+            }
+            else if (IsMouseOverSquare(mousePosition))
+            {
+                _currentDragTarget = DragTarget.Square;
+                _dragOffset = _blocker.Position - mousePosition;
+            }
+        }
+        else if (_currentMouseState.LeftButton == ButtonState.Released)
+        {
+            _currentDragTarget = DragTarget.None;
+        }
+
+        if (_currentMouseState.LeftButton == ButtonState.Pressed)
+        {
+            switch (_currentDragTarget)
+            {
+                case DragTarget.Square:
+                    _blocker.Position = mousePosition + _dragOffset;
+                    break;
+                case DragTarget.Triangle:
+                    _player.Position = mousePosition + _dragOffset;
+                    break;
+            }
+        }
+    }
+
     private bool IsMouseOverCircle(Vector2 mousePosition)
     {
         return Vector2.Distance(mousePosition, _emitter.Position) <= _emitter.Radius;
@@ -164,6 +251,11 @@ public class Game1 : Game
             && mousePosition.Y <= _blocker.Position.Y + halfSize;
     }
 
+    private bool IsMouseOverTriangle(Vector2 mousePosition)
+    {
+        return Vector2.Distance(mousePosition, _player.Position) <= _player.Size;
+    }
+
     private void UpdateRayPositions()
     {
         for (int i = 0; i < _rays.Length; i++)
@@ -172,6 +264,14 @@ public class Game1 : Game
             Vector2 direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
             _rays[i] = new Ray(_emitter.Position, direction);
         }
+    }
+
+    private void ResetGame()
+    {
+        _gameOver = false;
+        _emitter.Position = new Vector2(0, _graphics.PreferredBackBufferHeight / 2);
+        _blocker.Position = new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2);
+        _player.Position = _blocker.Position;
     }
 
     protected override void Draw(GameTime gameTime)
@@ -190,6 +290,20 @@ public class Game1 : Game
         }
         _emitter.Draw(GraphicsDevice, _basicEffect);
         _blocker.Draw(GraphicsDevice, _basicEffect);
+        _player.Draw(GraphicsDevice, _basicEffect, _gameOver ? Color.Red : Color.Green);
+
+        // Draw game over text
+        if (_gameOver)
+        {
+            _spriteBatch.Begin();
+            string text = "Game Over! Press R to restart";
+            Vector2 textSize = _gameFont.MeasureString(text);
+            _spriteBatch.DrawString(_gameFont, text,
+                new Vector2(_graphics.PreferredBackBufferWidth / 2 - textSize.X / 2,
+                           _graphics.PreferredBackBufferHeight / 2 - textSize.Y / 2),
+                Color.White);
+            _spriteBatch.End();
+        }
 
         base.Draw(gameTime);
     }

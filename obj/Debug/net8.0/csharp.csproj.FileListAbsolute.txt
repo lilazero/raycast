@@ -23,3 +23,4 @@ c:\Andi\code\repositories\csharp\obj\Debug\net8.0\refint\csharp.dll
 c:\Andi\code\repositories\csharp\obj\Debug\net8.0\csharp.pdb
 c:\Andi\code\repositories\csharp\obj\Debug\net8.0\csharp.genruntimeconfig.cache
 c:\Andi\code\repositories\csharp\obj\Debug\net8.0\ref\csharp.dll
+c:\Andi\code\repositories\csharp\bin\Debug\net8.0\Content\GameFont.xnb
