@@ -28,7 +28,15 @@ public class Square
 
         // Check each edge and find the closest intersection point
         Vector2 tempIntersection;
-        if (LineIntersectsLine(start, end, new Vector2(left, top), new Vector2(right, top), out tempIntersection))
+        if (
+            LineIntersectsLine(
+                start,
+                end,
+                new Vector2(left, top),
+                new Vector2(right, top),
+                out tempIntersection
+            )
+        )
         {
             float dist = Vector2.DistanceSquared(start, tempIntersection);
             if (dist < closestDistance)
@@ -38,7 +46,15 @@ public class Square
                 hasIntersection = true;
             }
         }
-        if (LineIntersectsLine(start, end, new Vector2(right, top), new Vector2(right, bottom), out tempIntersection))
+        if (
+            LineIntersectsLine(
+                start,
+                end,
+                new Vector2(right, top),
+                new Vector2(right, bottom),
+                out tempIntersection
+            )
+        )
         {
             float dist = Vector2.DistanceSquared(start, tempIntersection);
             if (dist < closestDistance)
@@ -48,7 +64,15 @@ public class Square
                 hasIntersection = true;
             }
         }
-        if (LineIntersectsLine(start, end, new Vector2(right, bottom), new Vector2(left, bottom), out tempIntersection))
+        if (
+            LineIntersectsLine(
+                start,
+                end,
+                new Vector2(right, bottom),
+                new Vector2(left, bottom),
+                out tempIntersection
+            )
+        )
         {
             float dist = Vector2.DistanceSquared(start, tempIntersection);
             if (dist < closestDistance)
@@ -58,7 +82,15 @@ public class Square
                 hasIntersection = true;
             }
         }
-        if (LineIntersectsLine(start, end, new Vector2(left, bottom), new Vector2(left, top), out tempIntersection))
+        if (
+            LineIntersectsLine(
+                start,
+                end,
+                new Vector2(left, bottom),
+                new Vector2(left, top),
+                out tempIntersection
+            )
+        )
         {
             float dist = Vector2.DistanceSquared(start, tempIntersection);
             if (dist < closestDistance)
@@ -77,12 +109,18 @@ public class Square
         return false;
     }
 
-    private bool LineIntersectsLine(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
+    private bool LineIntersectsLine(
+        Vector2 a1,
+        Vector2 a2,
+        Vector2 b1,
+        Vector2 b2,
+        out Vector2 intersection
+    )
     {
         intersection = Vector2.Zero;
 
         float denominator = (b2.Y - b1.Y) * (a2.X - a1.X) - (b2.X - b1.X) * (a2.Y - a1.Y);
-        
+
         if (denominator == 0)
             return false;
 
@@ -91,10 +129,7 @@ public class Square
 
         if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1)
         {
-            intersection = new Vector2(
-                a1.X + ua * (a2.X - a1.X),
-                a1.Y + ua * (a2.Y - a1.Y)
-            );
+            intersection = new Vector2(a1.X + ua * (a2.X - a1.X), a1.Y + ua * (a2.Y - a1.Y));
             return true;
         }
 
@@ -106,10 +141,22 @@ public class Square
         VertexPositionColor[] vertices = new VertexPositionColor[5];
         float halfSize = Size / 2;
 
-        vertices[0] = new VertexPositionColor(new Vector3(Position.X - halfSize, Position.Y - halfSize, 0), Color.Blue);
-        vertices[1] = new VertexPositionColor(new Vector3(Position.X + halfSize, Position.Y - halfSize, 0), Color.Blue);
-        vertices[2] = new VertexPositionColor(new Vector3(Position.X + halfSize, Position.Y + halfSize, 0), Color.Blue);
-        vertices[3] = new VertexPositionColor(new Vector3(Position.X - halfSize, Position.Y + halfSize, 0), Color.Blue);
+        vertices[0] = new VertexPositionColor(
+            new Vector3(Position.X - halfSize, Position.Y - halfSize, 0),
+            Color.Blue
+        );
+        vertices[1] = new VertexPositionColor(
+            new Vector3(Position.X + halfSize, Position.Y - halfSize, 0),
+            Color.Blue
+        );
+        vertices[2] = new VertexPositionColor(
+            new Vector3(Position.X + halfSize, Position.Y + halfSize, 0),
+            Color.Blue
+        );
+        vertices[3] = new VertexPositionColor(
+            new Vector3(Position.X - halfSize, Position.Y + halfSize, 0),
+            Color.Blue
+        );
         vertices[4] = vertices[0];
 
         foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)

@@ -22,6 +22,16 @@ public class Game1 : Game
     // Add new field
     private Square _blocker;
 
+    // Add new field to track which shape is being dragged
+    private enum DragTarget
+    {
+        None,
+        Circle,
+        Square
+    }
+
+    private DragTarget _currentDragTarget = DragTarget.None;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -70,7 +80,10 @@ public class Game1 : Game
 
         // Add blocker initialization
         _blocker = new Square(
-            new Vector2(_graphics.PreferredBackBufferWidth / 2 + 200, _graphics.PreferredBackBufferHeight / 2),
+            new Vector2(
+                _graphics.PreferredBackBufferWidth / 2 + 200,
+                _graphics.PreferredBackBufferHeight / 2
+            ),
             100f
         );
 
@@ -97,37 +110,41 @@ public class Game1 : Game
 
         Vector2 mousePosition = new Vector2(_currentMouseState.X, _currentMouseState.Y);
 
-        // Handle dragging
-        if (_currentMouseState.LeftButton == ButtonState.Pressed)
+        // Handle dragging start
+        if (
+            _currentMouseState.LeftButton == ButtonState.Pressed
+            && _previousMouseState.LeftButton == ButtonState.Released
+        )
         {
-            if (!_isDragging && IsMouseOverCircle(mousePosition))
+            if (IsMouseOverCircle(mousePosition))
             {
-                _isDragging = true;
+                _currentDragTarget = DragTarget.Circle;
                 _dragOffset = _emitter.Position - mousePosition;
             }
-        }
-        else
-        {
-            _isDragging = false;
-        }
-
-        // Update circle position while dragging
-        if (_isDragging)
-        {
-            _emitter.Position = mousePosition + _dragOffset;
-            // Update ray positions
-            for (int i = 0; i < _rays.Length; i++)
+            else if (IsMouseOverSquare(mousePosition))
             {
-                float angle = MathHelper.ToRadians(i);
-                Vector2 direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
-                _rays[i] = new Ray(_emitter.Position, direction);
+                _currentDragTarget = DragTarget.Square;
+                _dragOffset = _blocker.Position - mousePosition;
             }
         }
-
-        // Add square dragging logic
-        if (Keyboard.GetState().IsKeyDown(Keys.Space))
+        else if (_currentMouseState.LeftButton == ButtonState.Released)
         {
-            _blocker.Position = mousePosition;
+            _currentDragTarget = DragTarget.None;
+        }
+
+        // Update positions while dragging
+        if (_currentMouseState.LeftButton == ButtonState.Pressed)
+        {
+            switch (_currentDragTarget)
+            {
+                case DragTarget.Circle:
+                    _emitter.Position = mousePosition + _dragOffset;
+                    UpdateRayPositions();
+                    break;
+                case DragTarget.Square:
+                    _blocker.Position = mousePosition + _dragOffset;
+                    break;
+            }
         }
 
         base.Update(gameTime);
@@ -136,6 +153,25 @@ public class Game1 : Game
     private bool IsMouseOverCircle(Vector2 mousePosition)
     {
         return Vector2.Distance(mousePosition, _emitter.Position) <= _emitter.Radius;
+    }
+
+    private bool IsMouseOverSquare(Vector2 mousePosition)
+    {
+        float halfSize = _blocker.Size / 2;
+        return mousePosition.X >= _blocker.Position.X - halfSize
+            && mousePosition.X <= _blocker.Position.X + halfSize
+            && mousePosition.Y >= _blocker.Position.Y - halfSize
+            && mousePosition.Y <= _blocker.Position.Y + halfSize;
+    }
+
+    private void UpdateRayPositions()
+    {
+        for (int i = 0; i < _rays.Length; i++)
+        {
+            float angle = MathHelper.ToRadians(i);
+            Vector2 direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+            _rays[i] = new Ray(_emitter.Position, direction);
+        }
     }
 
     protected override void Draw(GameTime gameTime)
